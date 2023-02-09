@@ -94,6 +94,10 @@ HERE
 }
 
 main() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
+  
   export DEBIAN_FRONTEND=noninteractive
   PACKAGE_REPOSITORY=ubuntu.bigbluebutton.org
   LETS_ENCRYPT_OPTIONS="--webroot --non-interactive"
@@ -190,6 +194,9 @@ main() {
         ;;
     esac
   done
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
 
   if [ -n "$HOST" ]; then
     check_host "$HOST"
@@ -203,6 +210,9 @@ main() {
     check_apache2
   fi
 
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   # Check if we're installing coturn (need an e-mail address for Let's Encrypt) 
   if [ -z "$VERSION" ] && [ -n "$COTURN" ]; then
     if [ -z "$EMAIL" ]; then err "Installing coturn needs an e-mail address for Let's Encrypt"; fi
@@ -227,6 +237,9 @@ main() {
   sudo add-apt-repository universe
   need_pkg wget curl gpg-agent dirmngr
 
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   # need_pkg xmlstarlet
   get_IP "$HOST"
 
@@ -243,6 +256,9 @@ main() {
       sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5AFA7A83
     fi
 
+    if [ -f /var/log/syslog ]; then
+      cat /var/log/syslog | grep "(Permission denied)"
+    fi
     rm -rf /etc/apt/sources.list.d/kurento.list     # Kurento 6.15 now packaged with 2.3
 
     if grep -q 12 /etc/apt/sources.list.d/nodesource.list ; then # Node 12 might be installed, previously used in BigBlueButton
@@ -261,6 +277,9 @@ main() {
     echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
     rm -f /etc/apt/sources.list.d/mongodb-org-4.2.list
 
+    if [ -f /var/log/syslog ]; then
+      cat /var/log/syslog | grep "(Permission denied)"
+    fi
     touch /root/.rnd
     MONGODB=mongodb-org
     install_docker		                     # needed for bbb-libreoffice-docker
@@ -277,7 +296,9 @@ main() {
       rm -rf /var/lib/tomcat9
     fi
   fi
-
+    if [ -f /var/log/syslog ]; then
+      cat /var/log/syslog | grep "(Permission denied)"
+    fi
   apt-get update
   apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" dist-upgrade
 
@@ -291,12 +312,18 @@ main() {
 
   while [ ! -f $SERVLET_DIR/WEB-INF/classes/bigbluebutton.properties ]; do sleep 1; echo -n '.'; done
 
+    if [ -f /var/log/syslog ]; then
+      cat /var/log/syslog | grep "(Permission denied)"
+    fi
   check_lxc
   check_nat
   check_LimitNOFILE
 
   configure_HTML5 
 
+    if [ -f /var/log/syslog ]; then
+      cat /var/log/syslog | grep "(Permission denied)"
+    fi
   if [ -n "$LINK_PATH" ]; then
     ln -s "$LINK_PATH" "/var/bigbluebutton"
   fi
@@ -306,11 +333,17 @@ main() {
   elif [ -n "$HOST" ] && [ -n "$EMAIL" ] ; then
     install_ssl
   fi
+      if [ -f /var/log/syslog ]; then
+      cat /var/log/syslog | grep "(Permission denied)"
+    fi
 
   if [ -n "$GREENLIGHT" ]; then
     install_greenlight_v3
   fi
 
+    if [ -f /var/log/syslog ]; then
+      cat /var/log/syslog | grep "(Permission denied)"
+    fi
   if [ -n "$COTURN" ]; then
     configure_coturn
 
@@ -331,13 +364,18 @@ main() {
       netfilter-persistent save
     fi
   fi
-
+    if [ -f /var/log/syslog ]; then
+      cat /var/log/syslog | grep "(Permission denied)"
+    fi
   apt-get auto-remove -y
 
   if systemctl status freeswitch.service | grep -q SETSCHEDULER; then
     sed -i "s/^CPUSchedulingPolicy=rr/#CPUSchedulingPolicy=rr/g" /lib/systemd/system/freeswitch.service
     systemctl daemon-reload
   fi
+      if [ -f /var/log/syslog ]; then
+      cat /var/log/syslog | grep "(Permission denied)"
+    fi
 
   systemctl restart systemd-journald
 
@@ -345,6 +383,9 @@ main() {
     setup_ufw 
   fi
 
+    if [ -f /var/log/syslog ]; then
+      cat /var/log/syslog | grep "(Permission denied)"
+    fi
   if [ -n "$HOST" ]; then
     bbb-conf --setip "$HOST"
   else
