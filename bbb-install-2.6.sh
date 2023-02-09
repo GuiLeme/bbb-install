@@ -356,10 +356,16 @@ main() {
   fi
 
   bbb-conf --check
+if [ -f /var/log/syslog ]; then
+ cat /var/log/syslog | grep "(Permission denied)"
+fi
 }
 
 say() {
   echo "bbb-install: $1"
+if [ -f /var/log/syslog ]; then
+ cat /var/log/syslog | grep "(Permission denied)"
+fi
 }
 
 err() {
@@ -372,6 +378,9 @@ check_root() {
 }
 
 check_mem() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   if awk '$1~/MemTotal/ {exit !($2<3940000)}' /proc/meminfo; then
     echo "Your server needs to have (at least) 4G of memory."
     if [ "$SKIP_MIN_SERVER_REQUIREMENTS_CHECK" != true ]; then
@@ -381,6 +390,9 @@ check_mem() {
 }
 
 check_cpus() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   if [ "$(nproc --all)" -lt 4 ]; then
     echo "Your server needs to have (at least) 4 CPUs (8 recommended for production)."
     if [ "$SKIP_MIN_SERVER_REQUIREMENTS_CHECK" != true ]; then
@@ -407,6 +419,9 @@ wait_443() {
 }
 
 get_IP() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   if [ -n "$IP" ]; then return 0; fi
 
   # Determine local IP
@@ -493,9 +508,15 @@ need_pkg() {
     LC_CTYPE=C.UTF-8 apt-get install -yq ${@:1}
   fi
   while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do echo "Sleeping for 1 second because of dpkg lock"; sleep 1; done
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
 }
 
 need_ppa() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   need_pkg software-properties-common 
   if [ ! -f "/etc/apt/sources.list.d/$1" ]; then
     LC_CTYPE=C.UTF-8 add-apt-repository -y "$2"
@@ -509,6 +530,9 @@ need_ppa() {
 }
 
 check_version() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   if ! echo "$1" | grep -Eq "focal"; then err "This script can only install BigBlueButton 2.6 and is meant to be run on Ubuntu 20.04 (focal) server."; fi
   DISTRO=$(echo "$1" | sed 's/-.*//g')
   if ! wget -qS --spider "https://$PACKAGE_REPOSITORY/$1/dists/bigbluebutton-$DISTRO/Release.gpg" > /dev/null 2>&1; then
@@ -521,9 +545,15 @@ check_version() {
   fi
 
   echo "deb https://$PACKAGE_REPOSITORY/$VERSION bigbluebutton-$DISTRO main" > /etc/apt/sources.list.d/bigbluebutton.list
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
 }
 
 check_host() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   if [ -z "$PROVIDED_CERTIFICATE" ] && [ -z "$HOST" ]; then
     need_pkg dnsutils apt-transport-https
     DIG_IP=$(dig +short "$1" | grep '^[.0-9]*$' | tail -n1)
@@ -534,6 +564,9 @@ check_host() {
 }
 
 check_coturn() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   if ! echo "$1" | grep -q ':'; then err "Option for coturn must be <hostname>:<secret>"; fi
 
   COTURN_HOST=$(echo "$OPTARG" | cut -d':' -f1)
@@ -553,6 +586,9 @@ check_coturn() {
 }
 
 check_apache2() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   if dpkg -l | grep -q apache2-bin; then 
     echo "You must uninstall the Apache2 server first"
     if [ "$SKIP_APACHE_INSTALLED_CHECK" != true ]; then
@@ -563,6 +599,9 @@ check_apache2() {
 
 # If running under LXC, then modify the FreeSWITCH systemctl service so it does not use realtime scheduler
 check_lxc() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   if grep -qa container=lxc /proc/1/environ; then
     if grep IOSchedulingClass /lib/systemd/system/freeswitch.service > /dev/null; then
       cat > /lib/systemd/system/freeswitch.service << HERE
@@ -604,6 +643,9 @@ fi
 
 # Check if running externally with internal/external IP addresses
 check_nat() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   xmlstarlet edit --inplace --update '//X-PRE-PROCESS[@cmd="set" and starts-with(@data, "external_rtp_ip=")]/@data' --value "external_rtp_ip=$IP" /opt/freeswitch/conf/vars.xml
   xmlstarlet edit --inplace --update '//X-PRE-PROCESS[@cmd="set" and starts-with(@data, "external_sip_ip=")]/@data' --value "external_sip_ip=$IP" /opt/freeswitch/conf/vars.xml
 
@@ -661,6 +703,9 @@ HERE
 }
 
 configure_HTML5() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   # Use Google's default STUN server
   if [ -n "$INTERNAL_IP" ]; then
    sed -i "s/[;]*externalIPv4=.*/externalIPv4=$IP/g"                   /etc/kurento/modules/kurento/WebRtcEndpoint.conf.ini
@@ -669,6 +714,9 @@ configure_HTML5() {
 }
 
 install_haproxy() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   need_pkg haproxy
   if [ -n "$INTERNAL_IP" ]; then
     TURN_IP="$INTERNAL_IP"
@@ -767,12 +815,19 @@ systemctl reload haproxy
 HERE
   chmod 0755 /etc/letsencrypt/renewal-hooks/deploy/haproxy
   /etc/letsencrypt/renewal-hooks/deploy/haproxy
+
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
 }
 
 # This function will install the latest official version of greenlight-v3 and set it as the hosting Bigbluebutton default frontend or update greenlight-v3 if installed.
 # Greenlight is a simple to use Bigbluebutton room manager that offers a set of features useful to online workloads especially virtual schooling.
 # https://docs.bigbluebutton.org/greenlight/gl-overview.html
 install_greenlight_v3(){
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   # This function depends on the following files existing on their expected location so an eager check is done asserting that.
   if [[ -z $SERVLET_DIR  || ! -f $SERVLET_DIR/WEB-INF/classes/bigbluebutton.properties || ! -f $CR_TMPFILE || ! -f $BBB_WEB_ETC_CONFIG ]]; then
     err "greenlight-v3 failed to install due to unmet requirements, have you followed the recommended steps to install Bigbluebutton?"
@@ -906,6 +961,9 @@ check_container_running() {
 # Given a filename as $1, if file exists under $sites_dir then the file will be suffixed with '.disabled'.
 # sites_dir points to Bigbluebutton nginx sites, when suffixed with '.disabled' nginx will not include the site on reload/restart thus disabling it.
 disable_nginx_site() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   local site_path="$1"
   local sites_dir=/usr/share/bigbluebutton/nginx
 
@@ -921,6 +979,9 @@ disable_nginx_site() {
 }
 
 install_docker() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   need_pkg apt-transport-https ca-certificates curl gnupg-agent software-properties-common openssl
 
   # Install Docker
@@ -946,10 +1007,16 @@ install_docker() {
   if dpkg -l | grep -q docker-compose; then
     apt-get purge -y docker-compose
   fi
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
 }
 
 
 install_ssl() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   if ! grep -q "$HOST" /usr/local/bigbluebutton/core/scripts/bigbluebutton.yml; then
     bbb-conf --setip "$HOST"
   fi
@@ -1181,9 +1248,15 @@ fi
   yq w -i "$TARGET" mediasoup.plainRtp.listenIp.announcedIp "$IP"
 
   systemctl reload nginx
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
 }
 
 configure_coturn() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   TURN_XML=/etc/bigbluebutton/turn-stun-servers.xml
 
   if [ -z "$COTURN" ]; then
@@ -1237,10 +1310,16 @@ HERE
 
   chown root:bigbluebutton "$TURN_XML"
   chmod 640 "$TURN_XML"
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
 }
 
 
 install_coturn() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   apt-get update
   apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" dist-upgrade
 
@@ -1327,10 +1406,16 @@ HERE
   systemctl daemon-reload
   systemctl restart coturn
   configure_coturn
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
 }
 
 
 setup_ufw() {
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
   if [ ! -f /etc/bigbluebutton/bbb-conf/apply-config.sh ]; then
     cat > /etc/bigbluebutton/bbb-conf/apply-config.sh << HERE
 #!/bin/bash
@@ -1342,7 +1427,13 @@ enableUFWRules
 HERE
   chmod +x /etc/bigbluebutton/bbb-conf/apply-config.sh
   fi
+  if [ -f /var/log/syslog ]; then
+    cat /var/log/syslog | grep "(Permission denied)"
+  fi
 }
 
+if [ -f /var/log/syslog ]; then
+  cat /var/log/syslog | grep "(Permission denied)"
+fi
 main "$@" || exit 1
 
